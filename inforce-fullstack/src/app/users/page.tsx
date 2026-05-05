@@ -18,6 +18,19 @@ import {
 } from "@/src/components/forms/userForms";
 import { useAdminGuard } from "@/src/utils/roleGuard";
 
+type CreateUserMutationPayload = Pick<IUser, "name" | "email"> & {
+  password: string;
+};
+
+type UpdateUserMutationPayload = Pick<IUser, "name" | "email"> & {
+  role: IUserRole;
+};
+
+type UpdateUserMutationVariables = {
+  id: number;
+  payload: UpdateUserMutationPayload;
+};
+
 export default function Users() {
   const { user, loading } = useUser();
   const queryClient = useQueryClient();
@@ -53,19 +66,13 @@ export default function Users() {
   });
 
   const editMutation = useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: number;
-      payload: { name: string; email: string; role: IUserRole };
-    }) => UpdateUser(id, payload),
+    mutationFn: ({ id, payload }: UpdateUserMutationVariables) => UpdateUser(id, payload),
     onSuccess: () => handleSuccess(),
     onError: () => handleError("Failed to edit user"),
   });
 
   const createMutation = useMutation({
-    mutationFn: (payload: { name: string; email: string; password: string }) => CreateUser(payload),
+    mutationFn: (payload: CreateUserMutationPayload) => CreateUser(payload),
     onSuccess: () => handleSuccess(),
     onError: () => handleError("Failed to create user"),
 

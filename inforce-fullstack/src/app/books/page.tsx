@@ -13,6 +13,12 @@ import EditBookModal from "@/src/components/modals/EditBookModal";
 import { DIGITS_ONLY_PATTERN } from "@/src/utils/validation";
 import { BookFormState, EMPTY_BOOK_FORM } from "@/src/components/forms/bookForms";
 
+type BookMutationPayload = Pick<IBook, "name" | "author" | "pageCount">;
+type UpdateBookMutationVariables = {
+    id: number;
+    payload: BookMutationPayload;
+};
+
 export default function Books() {
     const queryClient = useQueryClient();
     const { user } = useUser();
@@ -40,20 +46,13 @@ export default function Books() {
     };
 
     const createMutation = useMutation({
-        mutationFn: (payload: { name: string; author: string; pageCount: number }) =>
-            CreateBook(payload),
+        mutationFn: (payload: BookMutationPayload) => CreateBook(payload),
         onSuccess: () => handleSuccess(),
         onError: () => handleError("Failed to create book"),
     });
 
     const editMutation = useMutation({
-        mutationFn: ({
-            id,
-            payload,
-        }: {
-            id: number;
-            payload: { name: string; author: string; pageCount: number };
-        }) => UpdateBook(id, payload),
+        mutationFn: ({ id, payload }: UpdateBookMutationVariables) => UpdateBook(id, payload),
         onSuccess: () => handleSuccess(),
         onError: () => handleError("Failed to edit book"),
     });
