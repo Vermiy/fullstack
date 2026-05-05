@@ -11,9 +11,9 @@ import {
   SignUp as SignUpService,
 } from "@/src/services/auth.services";
 import { useUser } from "@/src/store/UserContext";
+import { isValidEmail } from "@/src/utils/validation";
 
 export default function SignUp() {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const router = useRouter();
   const { setUser } = useUser();
   const [name, setName] = useState("");
@@ -63,7 +63,7 @@ export default function SignUp() {
       return;
     }
 
-    if (!emailPattern.test(trimmedEmail)) {
+    if (!isValidEmail(trimmedEmail)) {
       alert("Please enter a valid email address");
       return;
     }

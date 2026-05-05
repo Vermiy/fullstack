@@ -11,9 +11,9 @@ import {
   setAccessToken,
 } from "@/src/services/auth.services";
 import { useUser } from "@/src/store/UserContext";
+import { isValidEmail } from "@/src/utils/validation";
 
 export default function Auth() {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const router = useRouter();
   const { setUser } = useUser();
   const [email, setEmail] = useState("");
@@ -56,7 +56,7 @@ export default function Auth() {
       return;
     }
 
-    if (!emailPattern.test(trimmedEmail)) {
+    if (!isValidEmail(trimmedEmail)) {
       alert("Please enter a valid email address");
       return;
     }
