@@ -2,8 +2,7 @@
 
 import { IUserRole } from "@/src/types/UserRoles";
 import { useUser } from "../../store/UserContext";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { IUser } from "@/src/types/UserType";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreateUser, DeleteUser, GetAllUsers, UpdateUser } from "../../services/user.services";
@@ -17,9 +16,9 @@ import {
   EMPTY_CREATE_USER_FORM,
   EMPTY_EDIT_USER_FORM,
 } from "@/src/components/forms/userForms";
+import { useAdminGuard } from "@/src/utils/roleGuard";
 
 export default function Users() {
-  const router = useRouter();
   const { user, loading } = useUser();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -32,20 +31,8 @@ export default function Users() {
   );
   const [createFormError, setCreateFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (loading) return;
 
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const roles = user.roles || [];
-
-    if (!roles.includes(IUserRole.ADMIN)) {
-      router.push("/forbidden");
-    }
-  }, [user, loading, router]);
+  useAdminGuard(user, loading);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["users"],
