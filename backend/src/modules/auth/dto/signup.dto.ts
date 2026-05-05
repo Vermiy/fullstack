@@ -1,5 +1,5 @@
 import { IsString, IsEmail, MinLength, IsOptional, IsEnum } from 'class-validator';
-import { UserRoles } from 'generated/prisma/enums';
+import { UserRoles } from '@prisma/client';
 
 export class SignupDto {
     @IsString()

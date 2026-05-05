@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { UserRoles } from 'generated/prisma/enums';
+import { UserRoles } from '@prisma/client';
 
 @Injectable()
 export class AuthService {

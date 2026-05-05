@@ -1,4 +1,4 @@
-import { UserRoles } from "generated/prisma/enums"
+import { UserRoles } from '@prisma/client';
 
 export class CreateUserDto {
     name: string

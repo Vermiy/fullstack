@@ -32,12 +32,16 @@ export class BooksService {
   }
 
   async update(id: number, updateBookDto: UpdateBookDto) {
+    const { name, author, pageCount } = updateBookDto;
+
     return await this.prisma.book.update({
       where: {
         id: id
       },
       data: {
-        name: "1"
+        name,
+        author,
+        pageCount
       }
     });
   }
