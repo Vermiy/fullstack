@@ -35,15 +35,15 @@ export default function Books() {
         queryClient.invalidateQueries({ queryKey: ["books"] });
     };
 
-    const handleError = () => {
-        setActionError("Failed to create book");
+    const handleError = (msg: string) => {
+        setActionError(msg);
     };
 
     const createMutation = useMutation({
         mutationFn: (payload: { name: string; author: string; pageCount: number }) =>
             CreateBook(payload),
         onSuccess: () => handleSuccess(),
-        onError: () => handleError(),
+        onError: () => handleError("Failed to create book"),
     });
 
     const editMutation = useMutation({
@@ -55,17 +55,13 @@ export default function Books() {
             payload: { name: string; author: string; pageCount: number };
         }) => UpdateBook(id, payload),
         onSuccess: () => handleSuccess(),
-        onError: () => {
-            setActionError("Failed to edit book");
-        },
+        onError: () => handleError("Failed to edit book"),
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => DeleteBook(id),
         onSuccess: () => handleSuccess(),
-        onError: () => {
-            setActionError("Failed to delete book");
-        },
+        onError: () => handleError("Failed to delete book")
     });
 
     const openCreateBookModal = () => {
