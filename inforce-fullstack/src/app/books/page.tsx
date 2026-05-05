@@ -11,18 +11,7 @@ import { CreateBook, DeleteBook, GetAllBooks, UpdateBook } from "@/src/services/
 import CreateBookModal from "@/src/components/modals/CreateBookModal";
 import EditBookModal from "@/src/components/modals/EditBookModal";
 import { DIGITS_ONLY_PATTERN } from "@/src/utils/validation";
-
-type BookFormState = {
-    name: string;
-    author: string;
-    pageCount: string;
-};
-
-const EMPTY_BOOK_FORM: BookFormState = {
-    name: "",
-    author: "",
-    pageCount: "",
-};
+import { BookFormState, EMPTY_BOOK_FORM } from "@/src/components/forms/bookForms";
 
 export default function Books() {
     const queryClient = useQueryClient();

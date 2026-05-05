@@ -11,21 +11,25 @@ import UserCard from "@/src/components/UserCard";
 import Link from "next/link";
 import CreateUserModal from "@/src/components/modals/CreateUserModal";
 import EditUserModal from "@/src/components/modals/EditUserModal";
+import {
+  CreateUserFormState,
+  EditUserFormState,
+  EMPTY_CREATE_USER_FORM,
+  EMPTY_EDIT_USER_FORM,
+} from "@/src/components/forms/userForms";
 
 export default function Users() {
   const router = useRouter();
   const { user, loading } = useUser();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
-  const [editingUser, setEditingUser] = useState<IUser | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [editRole, setEditRole] = useState<IUserRole | null>(null);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [editUserForm, setEditUserForm] = useState<EditUserFormState>(EMPTY_EDIT_USER_FORM);
   const [editFormError, setEditFormError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createName, setCreateName] = useState("");
-  const [createEmail, setCreateEmail] = useState("");
-  const [createPassword, setCreatePassword] = useState("");
+  const [createUserForm, setCreateUserForm] = useState<CreateUserFormState>(
+    EMPTY_CREATE_USER_FORM
+  );
   const [createFormError, setCreateFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,43 +100,43 @@ export default function Users() {
   };
 
   const handleEdit = (targetUser: IUser) => {
-    setEditingUser(targetUser);
-    setEditName(targetUser.name);
-    setEditEmail(targetUser.email);
-    setEditRole(targetUser.roles.includes(IUserRole.ADMIN) ? IUserRole.ADMIN : IUserRole.USER);
+    setEditingUserId(targetUser.id);
+    setEditUserForm({
+      name: targetUser.name,
+      email: targetUser.email,
+      role: targetUser.roles.includes(IUserRole.ADMIN) ? IUserRole.ADMIN : IUserRole.USER,
+    });
     setEditFormError(null);
   };
 
   const closeEditModal = () => {
-    setEditingUser(null);
-    setEditName("");
-    setEditEmail("");
-    setEditRole(null);
+    setEditingUserId(null);
+    setEditUserForm(EMPTY_EDIT_USER_FORM);
     setEditFormError(null);
   };
 
   const handleSubmitEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!editingUser) return;
+    if (!editingUserId) return;
 
-    const name = editName.trim();
-    const email = editEmail.trim();
+    const name = editUserForm.name.trim();
+    const email = editUserForm.email.trim();
 
     if (!name || !email) {
       setEditFormError("Name and email are required");
       return;
     }
 
-    if (!editRole) {
+    if (!editUserForm.role) {
       setEditFormError("Select one role");
       return;
     }
 
     try {
       await editMutation.mutateAsync({
-        id: editingUser.id,
-        payload: { name, email, role: editRole },
+        id: editingUserId,
+        payload: { name, email, role: editUserForm.role },
       });
       closeEditModal();
     } catch {
@@ -141,27 +145,23 @@ export default function Users() {
   };
 
   const openCreateModal = () => {
-    setCreateName("");
-    setCreateEmail("");
-    setCreatePassword("");
+    setCreateUserForm(EMPTY_CREATE_USER_FORM);
     setCreateFormError(null);
     setIsCreateModalOpen(true);
   };
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
-    setCreateName("");
-    setCreateEmail("");
-    setCreatePassword("");
+    setCreateUserForm(EMPTY_CREATE_USER_FORM);
     setCreateFormError(null);
   };
 
   const handleSubmitCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const name = createName.trim();
-    const email = createEmail.trim();
-    const password = createPassword;
+    const name = createUserForm.name.trim();
+    const email = createUserForm.email.trim();
+    const password = createUserForm.password;
 
     if (!name || !email || !password) {
       setCreateFormError("Name, email and password are required");
@@ -216,29 +216,59 @@ export default function Users() {
       </div>
 
       <EditUserModal
-        isOpen={!!editingUser}
-        name={editName}
-        email={editEmail}
-        role={editRole}
+        isOpen={!!editingUserId}
+        name={editUserForm.name}
+        email={editUserForm.email}
+        role={editUserForm.role}
         formError={editFormError}
         isSubmitting={editMutation.isPending}
-        onNameChange={setEditName}
-        onEmailChange={setEditEmail}
-        onRoleChange={setEditRole}
+        onNameChange={(value) =>
+          setEditUserForm((prev) => ({
+            ...prev,
+            name: value,
+          }))
+        }
+        onEmailChange={(value) =>
+          setEditUserForm((prev) => ({
+            ...prev,
+            email: value,
+          }))
+        }
+        onRoleChange={(role) =>
+          setEditUserForm((prev) => ({
+            ...prev,
+            role,
+          }))
+        }
         onClose={closeEditModal}
         onSubmit={handleSubmitEdit}
       />
 
       <CreateUserModal
         isOpen={isCreateModalOpen}
-        name={createName}
-        email={createEmail}
-        password={createPassword}
+        name={createUserForm.name}
+        email={createUserForm.email}
+        password={createUserForm.password}
         formError={createFormError}
         isSubmitting={createMutation.isPending}
-        onNameChange={setCreateName}
-        onEmailChange={setCreateEmail}
-        onPasswordChange={setCreatePassword}
+        onNameChange={(value) =>
+          setCreateUserForm((prev) => ({
+            ...prev,
+            name: value,
+          }))
+        }
+        onEmailChange={(value) =>
+          setCreateUserForm((prev) => ({
+            ...prev,
+            email: value,
+          }))
+        }
+        onPasswordChange={(value) =>
+          setCreateUserForm((prev) => ({
+            ...prev,
+            password: value,
+          }))
+        }
         onClose={closeCreateModal}
         onSubmit={handleSubmitCreate}
       />
