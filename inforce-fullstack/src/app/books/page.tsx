@@ -10,247 +10,281 @@ import { useState } from "react";
 import { CreateBook, DeleteBook, GetAllBooks, UpdateBook } from "@/src/services/book.services";
 import CreateBookModal from "@/src/components/modals/CreateBookModal";
 import EditBookModal from "@/src/components/modals/EditBookModal";
+import { DIGITS_ONLY_PATTERN } from "@/src/utils/validation";
+
+type BookFormState = {
+    name: string;
+    author: string;
+    pageCount: string;
+};
+
+const EMPTY_BOOK_FORM: BookFormState = {
+    name: "",
+    author: "",
+    pageCount: "",
+};
 
 export default function Books() {
-  const digitsOnlyPattern = /^\d+$/;
-  const queryClient = useQueryClient();
-  const { user } = useUser();
-  const [isCreateBookModalOpen, setIsCreateBookModalOpen] = useState(false);
-  const [bookName, setBookName] = useState("");
-  const [bookAuthor, setBookAuthor] = useState("");
-  const [bookPageCount, setBookPageCount] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [editingBook, setEditingBook] = useState<IBook | null>(null);
-  const [editBookName, setEditBookName] = useState("");
-  const [editBookAuthor, setEditBookAuthor] = useState("");
-  const [editBookPageCount, setEditBookPageCount] = useState("");
-  const [editFormError, setEditFormError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
+    const { user } = useUser();
+    const [isCreateBookModalOpen, setIsCreateBookModalOpen] = useState(false);
+    const [createBookForm, setCreateBookForm] = useState<BookFormState>(EMPTY_BOOK_FORM);
+    const [formError, setFormError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [editingBookId, setEditingBookId] = useState<number | null>(null);
+    const [editBookForm, setEditBookForm] = useState<BookFormState>(EMPTY_BOOK_FORM);
+    const [editFormError, setEditFormError] = useState<string | null>(null);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["books"],
-    queryFn: () => GetAllBooks(),
-    enabled: !!user,
-  });
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["books"],
+        queryFn: () => GetAllBooks(),
+        enabled: !!user,
+    });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: { name: string; author: string; pageCount: number }) =>
-      CreateBook(payload),
-    onSuccess: () => {
-      setActionError(null);
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-    },
-    onError: () => {
-      setActionError("Failed to create book");
-    },
-  });
+    const createMutation = useMutation({
+        mutationFn: (payload: { name: string; author: string; pageCount: number }) =>
+            CreateBook(payload),
+        onSuccess: () => {
+            setActionError(null);
+            queryClient.invalidateQueries({ queryKey: ["books"] });
+        },
+        onError: () => {
+            setActionError("Failed to create book");
+        },
+    });
 
-  const editMutation = useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: number;
-      payload: { name: string; author: string; pageCount: number };
-    }) => UpdateBook(id, payload),
-    onSuccess: () => {
-      setActionError(null);
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-    },
-    onError: () => {
-      setActionError("Failed to edit book");
-    },
-  });
+    const editMutation = useMutation({
+        mutationFn: ({
+            id,
+            payload,
+        }: {
+            id: number;
+            payload: { name: string; author: string; pageCount: number };
+        }) => UpdateBook(id, payload),
+        onSuccess: () => {
+            setActionError(null);
+            queryClient.invalidateQueries({ queryKey: ["books"] });
+        },
+        onError: () => {
+            setActionError("Failed to edit book");
+        },
+    });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => DeleteBook(id),
-    onSuccess: () => {
-      setActionError(null);
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-    },
-    onError: () => {
-      setActionError("Failed to delete book");
-    },
-  });
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => DeleteBook(id),
+        onSuccess: () => {
+            setActionError(null);
+            queryClient.invalidateQueries({ queryKey: ["books"] });
+        },
+        onError: () => {
+            setActionError("Failed to delete book");
+        },
+    });
 
-  const openCreateBookModal = () => {
-    setBookName("");
-    setBookAuthor("");
-    setBookPageCount("");
-    setFormError(null);
-    setIsCreateBookModalOpen(true);
-  };
+    const openCreateBookModal = () => {
+        setCreateBookForm(EMPTY_BOOK_FORM);
+        setFormError(null);
+        setIsCreateBookModalOpen(true);
+    };
 
-  const closeCreateBookModal = () => {
-    setBookName("");
-    setBookAuthor("");
-    setBookPageCount("");
-    setFormError(null);
-    setIsCreateBookModalOpen(false);
-  };
+    const closeCreateBookModal = () => {
+        setCreateBookForm(EMPTY_BOOK_FORM);
+        setFormError(null);
+        setIsCreateBookModalOpen(false);
+    };
 
-  const handleDelete = (targetBook: IBook) => {
-    const confirmed = window.confirm(`Delete ${targetBook.name}?`);
-    if (!confirmed) return;
+    const handleDelete = (targetBook: IBook) => {
+        const confirmed = window.confirm(`Delete ${targetBook.name}?`);
+        if (!confirmed) return;
 
-    deleteMutation.mutate(targetBook.id);
-  };
+        deleteMutation.mutate(targetBook.id);
+    };
 
-  const handleEdit = (targetBook: IBook) => {
-    setEditingBook(targetBook);
-    setEditBookName(targetBook.name);
-    setEditBookAuthor(targetBook.author);
-    setEditBookPageCount(String(targetBook.pageCount));
-    setEditFormError(null);
-  };
+    const handleEdit = (targetBook: IBook) => {
+        setEditingBookId(targetBook.id);
+        setEditBookForm({
+            name: targetBook.name,
+            author: targetBook.author,
+            pageCount: String(targetBook.pageCount),
+        });
+        setEditFormError(null);
+    };
 
-  const closeEditModal = () => {
-    setEditingBook(null);
-    setEditBookName("");
-    setEditBookAuthor("");
-    setEditBookPageCount("");
-    setEditFormError(null);
-  };
+    const closeEditModal = () => {
+        setEditingBookId(null);
+        setEditBookForm(EMPTY_BOOK_FORM);
+        setEditFormError(null);
+    };
 
-  const handleSubmitEditBook = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    const handleSubmitEditBook = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
 
-    if (!editingBook) return;
+        if (!editingBookId) return;
 
-    const name = editBookName.trim();
-    const author = editBookAuthor.trim();
-    const rawPageCount = editBookPageCount.trim();
+        const name = editBookForm.name.trim();
+        const author = editBookForm.author.trim();
+        const rawPageCount = editBookForm.pageCount.trim();
 
-    if (!name || !author || !rawPageCount) {
-      setEditFormError("Name, author and page count are required");
-      return;
+        if (!name || !author || !rawPageCount) {
+            setEditFormError("Name, author and page count are required");
+            return;
+        }
+
+        if (!DIGITS_ONLY_PATTERN.test(rawPageCount)) {
+            setEditFormError("Page count must contain digits only");
+            return;
+        }
+
+        const pageCount = Number(rawPageCount);
+
+        if (Number.isNaN(pageCount) || pageCount <= 0) {
+            setEditFormError("Page count must be a positive number");
+            return;
+        }
+
+        try {
+            await editMutation.mutateAsync({
+                id: editingBookId,
+                payload: { name, author, pageCount },
+            });
+            closeEditModal();
+        } catch {
+            setEditFormError("Failed to edit book");
+        }
+    };
+
+    const handleSubmitCreateBook = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const name = createBookForm.name.trim();
+        const author = createBookForm.author.trim();
+        const rawPageCount = createBookForm.pageCount.trim();
+
+        if (!name || !author || !rawPageCount) {
+            setFormError("Name, author and page count are required");
+            return;
+        }
+
+        if (!DIGITS_ONLY_PATTERN.test(rawPageCount)) {
+            setFormError("Page count must contain digits only");
+            return;
+        }
+
+        const pageCount = Number(rawPageCount);
+
+        if (Number.isNaN(pageCount) || pageCount <= 0) {
+            setFormError("Page count must be a positive number");
+            return;
+        }
+
+        try {
+            await createMutation.mutateAsync({ name, author, pageCount });
+            closeCreateBookModal();
+        } catch {
+            setFormError("Failed to create book");
+        }
+    };
+
+    if (!user) return null;
+    const roles = user.roles;
+    const isUserAdmin = roles.includes(IUserRole.ADMIN);
+
+    if (isLoading) {
+        return <div className="px-6 py-10 text-[#6d5438]">Loading books...</div>;
     }
 
-    if (!digitsOnlyPattern.test(rawPageCount)) {
-      setEditFormError("Page count must contain digits only");
-      return;
+    if (error) {
+        return <div className="px-6 py-10 text-(--danger)">Failed to load books</div>;
     }
 
-    const pageCount = Number(rawPageCount);
+    const books: IBook[] = data ?? [];
 
-    if (Number.isNaN(pageCount) || pageCount <= 0) {
-      setEditFormError("Page count must be a positive number");
-      return;
-    }
+    return (
+        <section className="mx-auto w-full max-w-6xl px-6 py-10">
+            <h1 className="text-foreground text-3xl font-bold">Books</h1>
+            {isUserAdmin && (
+                <div>
+                    <button
+                        type="button"
+                        onClick={openCreateBookModal}
+                        className="mt-3 rounded-md bg-[#8b6a43] px-3 py-1.5 text-sm font-medium text-[#fff9f0]"
+                    >
+                        Create book
+                    </button>
+                </div>
+            )}
 
-    try {
-      await editMutation.mutateAsync({
-        id: editingBook.id,
-        payload: { name, author, pageCount },
-      });
-      closeEditModal();
-    } catch {
-      setEditFormError("Failed to edit book");
-    }
-  };
+            {actionError && <p className="mt-4 text-sm text-(--danger)">{actionError}</p>}
 
-  const handleSubmitCreateBook = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {books.map((b) => (
+                    <Link key={b.id} href={`/books/${b.id}`} className="block">
+                        <BookCard
+                            book={b}
+                            onEdit={isUserAdmin ? () => handleEdit(b) : undefined}
+                            onDelete={isUserAdmin ? () => handleDelete(b) : undefined}
+                        />
+                    </Link>
+                ))}
+            </div>
 
-    const name = bookName.trim();
-    const author = bookAuthor.trim();
-    const rawPageCount = bookPageCount.trim();
-
-    if (!name || !author || !rawPageCount) {
-      setFormError("Name, author and page count are required");
-      return;
-    }
-
-    if (!digitsOnlyPattern.test(rawPageCount)) {
-      setFormError("Page count must contain digits only");
-      return;
-    }
-
-    const pageCount = Number(rawPageCount);
-
-    if (Number.isNaN(pageCount) || pageCount <= 0) {
-      setFormError("Page count must be a positive number");
-      return;
-    }
-
-    try {
-      await createMutation.mutateAsync({ name, author, pageCount });
-      closeCreateBookModal();
-    } catch {
-      setFormError("Failed to create book");
-    }
-  };
-
-  if (!user) return null;
-  const roles = user.roles;
-  const isUserAdmin = roles.includes(IUserRole.ADMIN);
-
-  if (isLoading) {
-    return <div className="px-6 py-10 text-[#6d5438]">Loading books...</div>;
-  }
-
-  if (error) {
-    return <div className="px-6 py-10 text-(--danger)">Failed to load books</div>;
-  }
-
-  const books: IBook[] = data ?? [];
-
-  return (
-    <section className="mx-auto w-full max-w-6xl px-6 py-10">
-      <h1 className="text-foreground text-3xl font-bold">Books</h1>
-      {isUserAdmin && (
-        <div>
-          <button
-            type="button"
-            onClick={openCreateBookModal}
-            className="mt-3 rounded-md bg-[#8b6a43] px-3 py-1.5 text-sm font-medium text-[#fff9f0]"
-          >
-            Create book
-          </button>
-        </div>
-      )}
-
-      {actionError && <p className="mt-4 text-sm text-(--danger)">{actionError}</p>}
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {books.map((b) => (
-          <Link key={b.id} href={`/books/${b.id}`} className="block">
-            <BookCard
-              book={b}
-              onEdit={isUserAdmin ? () => handleEdit(b) : undefined}
-              onDelete={isUserAdmin ? () => handleDelete(b) : undefined}
+            <EditBookModal
+                isOpen={isUserAdmin && !!editingBookId}
+                name={editBookForm.name}
+                author={editBookForm.author}
+                pageCount={editBookForm.pageCount}
+                formError={editFormError}
+                isSubmitting={editMutation.isPending}
+                onNameChange={(value) =>
+                    setEditBookForm((prev) => ({
+                        ...prev,
+                        name: value,
+                    }))
+                }
+                onAuthorChange={(value) =>
+                    setEditBookForm((prev) => ({
+                        ...prev,
+                        author: value,
+                    }))
+                }
+                onPageCountChange={(value) =>
+                    setEditBookForm((prev) => ({
+                        ...prev,
+                        pageCount: value,
+                    }))
+                }
+                onClose={closeEditModal}
+                onSubmit={handleSubmitEditBook}
             />
-          </Link>
-        ))}
-      </div>
 
-      <EditBookModal
-        isOpen={isUserAdmin && !!editingBook}
-        name={editBookName}
-        author={editBookAuthor}
-        pageCount={editBookPageCount}
-        formError={editFormError}
-        isSubmitting={editMutation.isPending}
-        onNameChange={setEditBookName}
-        onAuthorChange={setEditBookAuthor}
-        onPageCountChange={setEditBookPageCount}
-        onClose={closeEditModal}
-        onSubmit={handleSubmitEditBook}
-      />
-
-      <CreateBookModal
-        isOpen={isUserAdmin && isCreateBookModalOpen}
-        name={bookName}
-        author={bookAuthor}
-        pageCount={bookPageCount}
-        formError={formError}
-        isSubmitting={createMutation.isPending}
-        onNameChange={setBookName}
-        onAuthorChange={setBookAuthor}
-        onPageCountChange={setBookPageCount}
-        onClose={closeCreateBookModal}
-        onSubmit={handleSubmitCreateBook}
-      />
-    </section>
-  );
+            <CreateBookModal
+                isOpen={isUserAdmin && isCreateBookModalOpen}
+                name={createBookForm.name}
+                author={createBookForm.author}
+                pageCount={createBookForm.pageCount}
+                formError={formError}
+                isSubmitting={createMutation.isPending}
+                onNameChange={(value) =>
+                    setCreateBookForm((prev) => ({
+                        ...prev,
+                        name: value,
+                    }))
+                }
+                onAuthorChange={(value) =>
+                    setCreateBookForm((prev) => ({
+                        ...prev,
+                        author: value,
+                    }))
+                }
+                onPageCountChange={(value) =>
+                    setCreateBookForm((prev) => ({
+                        ...prev,
+                        pageCount: value,
+                    }))
+                }
+                onClose={closeCreateBookModal}
+                onSubmit={handleSubmitCreateBook}
+            />
+        </section>
+    );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { IUser } from "@/src/types/UserType";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { GetUserById } from "@/src/services/user.services";
