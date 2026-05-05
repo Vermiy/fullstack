@@ -37,15 +37,19 @@ export default function Users() {
     enabled: !!user,
   });
 
+  const handleSuccess = () => {
+    setActionError(null);
+    queryClient.invalidateQueries({ queryKey: ["users"] });
+  };
+
+  const handleError = (msg: string) => {
+    setActionError(msg);
+  };
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => DeleteUser(id),
-    onSuccess: () => {
-      setActionError(null);
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: () => {
-      setActionError("Failed to delete user");
-    },
+    onSuccess: () => handleSuccess(),
+    onError: () => handleError("Failed to delete user"),
   });
 
   const editMutation = useMutation({
@@ -56,24 +60,15 @@ export default function Users() {
       id: number;
       payload: { name: string; email: string; role: IUserRole };
     }) => UpdateUser(id, payload),
-    onSuccess: () => {
-      setActionError(null);
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: () => {
-      setActionError("Failed to edit user");
-    },
+    onSuccess: () => handleSuccess(),
+    onError: () => handleError("Failed to edit user"),
   });
 
   const createMutation = useMutation({
     mutationFn: (payload: { name: string; email: string; password: string }) => CreateUser(payload),
-    onSuccess: () => {
-      setActionError(null);
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: () => {
-      setActionError("Failed to create user");
-    },
+    onSuccess: () => handleSuccess(),
+    onError: () => handleError("Failed to create user"),
+
   });
 
   const handleDelete = (targetUser: IUser) => {
