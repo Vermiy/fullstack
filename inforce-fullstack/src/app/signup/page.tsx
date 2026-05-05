@@ -13,6 +13,7 @@ import {
 import { useUser } from "@/src/store/UserContext";
 
 export default function SignUp() {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const router = useRouter();
   const { setUser } = useUser();
   const [name, setName] = useState("");
@@ -49,13 +50,21 @@ export default function SignUp() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName) {
       alert("Name is required");
       return;
     }
 
-    if (!email.trim()) {
+    if (!trimmedEmail) {
       alert("Email is required");
+      return;
+    }
+
+    if (!emailPattern.test(trimmedEmail)) {
+      alert("Please enter a valid email address");
       return;
     }
 
@@ -69,7 +78,7 @@ export default function SignUp() {
       return;
     }
 
-    mutate({ name, email, password });
+    mutate({ name: trimmedName, email: trimmedEmail, password });
   };
 
   return (

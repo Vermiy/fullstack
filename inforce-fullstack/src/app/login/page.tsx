@@ -13,6 +13,7 @@ import {
 import { useUser } from "@/src/store/UserContext";
 
 export default function Auth() {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const router = useRouter();
   const { setUser } = useUser();
   const [email, setEmail] = useState("");
@@ -48,8 +49,15 @@ export default function Auth() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim()) {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
       alert("Email is required");
+      return;
+    }
+
+    if (!emailPattern.test(trimmedEmail)) {
+      alert("Please enter a valid email address");
       return;
     }
 
@@ -58,7 +66,7 @@ export default function Auth() {
       return;
     }
 
-    mutate({ email, password });
+    mutate({ email: trimmedEmail, password });
   };
 
   return (
