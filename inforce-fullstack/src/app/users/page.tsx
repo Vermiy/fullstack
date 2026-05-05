@@ -26,11 +26,8 @@ export default function Users() {
   const [editUserForm, setEditUserForm] = useState<EditUserFormState>(EMPTY_EDIT_USER_FORM);
   const [editFormError, setEditFormError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createUserForm, setCreateUserForm] = useState<CreateUserFormState>(
-    EMPTY_CREATE_USER_FORM
-  );
+  const [createUserForm, setCreateUserForm] = useState<CreateUserFormState>(EMPTY_CREATE_USER_FORM);
   const [createFormError, setCreateFormError] = useState<string | null>(null);
-
 
   useAdminGuard(user, loading);
 

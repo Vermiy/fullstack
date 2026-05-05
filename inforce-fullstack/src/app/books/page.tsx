@@ -30,16 +30,20 @@ export default function Books() {
         enabled: !!user,
     });
 
+    const handleSuccess = () => {
+        setActionError(null);
+        queryClient.invalidateQueries({ queryKey: ["books"] });
+    };
+
+    const handleError = () => {
+        setActionError("Failed to create book");
+    };
+
     const createMutation = useMutation({
         mutationFn: (payload: { name: string; author: string; pageCount: number }) =>
             CreateBook(payload),
-        onSuccess: () => {
-            setActionError(null);
-            queryClient.invalidateQueries({ queryKey: ["books"] });
-        },
-        onError: () => {
-            setActionError("Failed to create book");
-        },
+        onSuccess: () => handleSuccess(),
+        onError: () => handleError(),
     });
 
     const editMutation = useMutation({
@@ -50,10 +54,7 @@ export default function Books() {
             id: number;
             payload: { name: string; author: string; pageCount: number };
         }) => UpdateBook(id, payload),
-        onSuccess: () => {
-            setActionError(null);
-            queryClient.invalidateQueries({ queryKey: ["books"] });
-        },
+        onSuccess: () => handleSuccess(),
         onError: () => {
             setActionError("Failed to edit book");
         },
@@ -61,10 +62,7 @@ export default function Books() {
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => DeleteBook(id),
-        onSuccess: () => {
-            setActionError(null);
-            queryClient.invalidateQueries({ queryKey: ["books"] });
-        },
+        onSuccess: () => handleSuccess(),
         onError: () => {
             setActionError("Failed to delete book");
         },

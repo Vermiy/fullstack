@@ -4,20 +4,20 @@ import { IUserRole } from "../types/UserRoles";
 import { IUser } from "../types/UserType";
 
 export function useAdminGuard(user: IUser | null, loading: boolean) {
-    const router = useRouter();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (loading) return;
+  useEffect(() => {
+    if (loading) return;
 
-        if (!user) {
-            router.push("/login");
-            return;
-        }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
-        const isAdmin = user.roles?.includes(IUserRole.ADMIN);
+    const isAdmin = user.roles?.includes(IUserRole.ADMIN);
 
-        if (!isAdmin) {
-            router.push("/forbidden");
-        }
-    }, [user, loading, router]);
+    if (!isAdmin) {
+      router.push("/forbidden");
+    }
+  }, [user, loading, router]);
 }
