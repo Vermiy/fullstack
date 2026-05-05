@@ -12,6 +12,7 @@ import CreateBookModal from "@/src/components/modals/CreateBookModal";
 import EditBookModal from "@/src/components/modals/EditBookModal";
 
 export default function Books() {
+    const digitsOnlyPattern = /^\d+$/;
     const queryClient = useQueryClient();
     const { user } = useUser();
     const [isCreateBookModalOpen, setIsCreateBookModalOpen] = useState(false);
@@ -125,6 +126,11 @@ export default function Books() {
             return;
         }
 
+        if (!digitsOnlyPattern.test(rawPageCount)) {
+            setEditFormError("Page count must contain digits only");
+            return;
+        }
+
         const pageCount = Number(rawPageCount);
 
         if (Number.isNaN(pageCount) || pageCount <= 0) {
@@ -152,6 +158,11 @@ export default function Books() {
 
         if (!name || !author || !rawPageCount) {
             setFormError("Name, author and page count are required");
+            return;
+        }
+
+        if (!digitsOnlyPattern.test(rawPageCount)) {
+            setFormError("Page count must contain digits only");
             return;
         }
 

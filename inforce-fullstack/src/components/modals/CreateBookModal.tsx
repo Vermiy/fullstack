@@ -62,8 +62,9 @@ export default function CreateBookModal({
             </label>
             <input
               id="create-book-page-count"
-              type="number"
-              min="1"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={pageCount}
               onChange={(e) => onPageCountChange(e.target.value)}
               className="text-foreground w-full rounded-md border border-(--border) bg-white px-3 py-2 text-sm outline-none focus:border-[#a58051]"
